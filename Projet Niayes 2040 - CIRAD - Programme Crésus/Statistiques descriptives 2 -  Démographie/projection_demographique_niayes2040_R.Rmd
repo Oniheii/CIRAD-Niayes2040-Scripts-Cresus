@@ -1,0 +1,355 @@
+---
+title: "projection demographique R niayes2040"
+author: "Crésus"
+date: "18/07/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+                            FONCTIONS PERSONNALISEES PROJECTION R-NIAYES 2040
+                            
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+### 1- Les fonctions de recherches et de créations de répertoire de données
+
+  - function 1A : création de dossiers voulus lorsqu'ils n'existent pas
+```{r setup, include=FALSE}
+create_folder=function(x,path=getwd()){
+    
+        for (f in x){
+            
+            folder<-file.path(path, f)
+
+        if (!dir.exists(folder)){
+            dir.create(folder)
+            print(paste(f,"has been created!"))
+        } else {
+        print(paste(folder,"already exists!"))}
+        }
+}
+```
+
+  - function 1B : lecture automatique de fichiers csv
+  
+```{r setup, include=FALSE}
+rcsv_sep=function(file_path){
+    L <- readLines(file_path, n = 1)
+    if (grepl(";", L)) read.csv2(file_path) else read.csv(file_path)
+    }
+```
+
+  - function 1C : tranposer la base de données
+```{r setup, include=FALSE}
+tanspo_proj=function(file_path){
+
+    data<-rcsv_sep(file_path)
+    #data<-data[1:(length(names(data))-2)]
+    data<-setNames(data.frame(t(data[,-1])), data[,1])[,1:((dim(data)[1])-1)]
+    data<-data.table::setDT(data, keep.rownames = TRUE)[]
+    names(data)[1]<-"years"
+    data$years<-as.numeric((stringr::str_remove_all(unlist(data[,1]), "X")))
+    return(data)
+}
+```
+
+
+  - function 1D : Les taux de croissance moyen (tmc)
+  
+          taux de croissance moyen calcul log:
+```{r setup, include=FALSE}
+tmc_log<-function(values,years=NULL){
+
+    values<-values
+    years<-years
+    
+        if(is.null(years) & is.null(dim(values))){
+            print("Error!! pour résoudre le problème:")
+            print("- Donnez le vecteur des dates puis celui des valeurs")
+            print("Ou ")
+            print("- Donnez une data.frame df[years,values]")
+        }
+        
+        if(is.null(years) & !is.null(dim(values))){
+            
+            if(dim(values)[2]==1)stop(
+"Error!! pour résoudre le problème:
+Donnez le vecteur des dates puis celui des valeurs
+Ou;
+Donnez une data.frame df[years,values]")
+
+            
+            years<-values[,1]
+            values<-values[,2]}
+    
+    n<-years[length(unlist(years))]-years[1]
+    to<-(1/n)*log((values[length(unlist(values))]/values[1]))
+return(to)
+}
+```
+
+          taux de croissance moyen calcul racine-n-èime:
+```{r setup, include=FALSE}
+tmc_racine_n<-function(values,years=NULL){
+
+    values<-values
+    years<-years
+    
+        if(is.null(years) & is.null(dim(values))){
+            print("Error!! pour résoudre le problème:")
+            print("- Donnez le vecteur des dates puis celui des valeurs")
+            print("Ou ")
+            print("- Donnez une data.frame df[years,values]")
+        }
+        
+        if(is.null(years) & !is.null(dim(values))){
+            
+            if(dim(values)[2]==1)stop(
+"Error!! pour résoudre le problème:
+Donnez le vecteur des dates puis celui des valeurs
+Ou;
+Donnez une data.frame df[years,values]")
+
+            
+            years<-values[,1]
+            values<-values[,2]}
+    
+    n<-years[length(unlist(years))]-years[1]
+    to<-((values[length(unlist(values))]/values[1])^(1/n))-1
+return(to)
+}
+```
+
+
+
+  - function 1E : tableaux de taux de croissance
+```{r setup, include=FALSE}
+list_tmc=function(df,com,outpath="projection_demographique_niayes2040"){
+
+    #if (is.null(com)){com<-names(df)}
+    
+    tmc<-data.frame(row.names = com)
+    tmc[c("tmc_log","tmc_racine_n")]<-NA
+    
+    for (c in com[2:length(com)]){
+        tmc[c,"tmc_log"]<-tmc_log(subset(df,select=c("years",c)))
+        tmc[c,"tmc_racine_n"]<-tmc_racine_n(subset(df,select=c("years",c)))
+    }
+    write.csv2(tmc,file.path(outpath,"taux_moyen_croissance.csv"))
+    return(tmc)
+}
+```
+
+
+  - function 1F : Projection demographique
+  
+      a- methode1: croissance geométrique
+```{r setup, include=FALSE}
+proj_geom=function(df,list_tmc,future=2040,methode="tmc_racine_n"){
+    
+    #reporduire les données de base
+    if (is.null(future)){
+        
+        years<-df$years
+        pj<-df[1,]
+        len_y0<-length((years))
+        last_y0<-years[len_y0]
+        n<-((last_y0-years[1]))
+        for (t in 1:n){
+            pj[1+t,1]<-pj[1,1]+t
+            for (nm in names(pj)){
+                pj[1+t,nm]<-pj[1,nm]*(1+list_tmc[nm,methode])^t}
+        }
+        return(pj)
+    }
+    
+    #projection vers le future
+    if(!is.null(future)){
+        
+        years<-df$years
+        pj<-df
+        len_y0<-length(years)
+        last_y0<-(years[len_y0])
+        n<-future-last_y0
+        for (t in 1:n){
+            
+            
+            de<-data.frame(matrix(ncol=length(names(pj))))
+            names(de)<-names(pj)
+            
+            pe<-pj[len_y0,"years"]+t
+            de["years"]<-pe
+
+            pj<-data.frame(rbind(pj,de))
+
+            for (nm in names(pj)){
+                pj[len_y0+t,nm]<-round(pj[1,nm]*(1+list_tmc[nm,methode])^(t+len_y0))
+                pj[len_y0+t,"years"]<-pe}
+        }
+    }
+    outpath<-file.path("projection_demographique")
+    write.csv2(pj,file.path(outpath,paste("projection_geometrique","_",future,".csv",sep="")))
+    return(pj)
+}
+```
+
+      b- methode2: croissance exponentielle
+```{r setup, include=FALSE}
+proj_expo=function(df,list_tmc,future=2040,methode="tmc_racine_n"){
+    
+    #reporduire les données de base
+    if (is.null(future)){
+        
+        years<-df$years
+        pj<-df[1,]
+        len_y0<-length(years)
+        last_y0<-years[len_y0]
+        n<-((last_y0-years[1]))
+        for (t in 1:n){
+            pj[1+t,1]<-pj[1,1]+t
+            
+            for (nm in names(pj[2:length(names(pj))])){
+                pj[1+t,nm]<-pj[1,nm]*(1+list_tmc[nm,methode])^t
+                pj[1+t,nm]<-pj[1,nm]*exp((t)*(list_tmc[nm,methode]))}
+        }
+        return(pj)
+    }
+    
+    #projection vers le future
+    if(!is.null(future)){
+        
+        years<-df$years
+        pj<-df
+        len_y0<-length((years))
+        last_y0<-years[len_y0]
+        n<-(future-last_y0)
+        for (t in 1:n){
+            de<-data.frame(matrix(ncol=length(names(pj))))
+            names(de)<-names(pj)
+            pe<-pj[len_y0,"years"]+t
+            de["years"]<-pe
+            pj<-data.frame(rbind(pj,de))
+            
+            for (nm in names(pj)[2:length(names(pj))]){
+                pj[len_y0+t,nm]<-round(pj[1,nm]*exp((t+len_y0)*(list_tmc[nm,methode])))
+                pj[len_y0+t,"years"]<-pe}
+        }
+    }
+    outpath<-file.path("projection_demographique")
+    write.csv2(pj,file.path(outpath,paste("projection_exponentielle","_",future,".csv",sep="")))
+    return(pj)
+}
+```
+
+
+
+  - function 1G : Rétro-Projection demographique
+  
+      a- methode1: croissance geométrique
+  
+```{r setup, include=FALSE}
+Re_proj_geom=function(df,list_tmc,passee=2006,methode="tmc_racine_n"){
+    
+        years<-df$years
+        pj<-df
+        first_y0<-(years[1])
+        n<-first_y0-passee
+        for (t in 1:n){
+              
+            de<-data.frame(matrix(ncol=length(names(pj))))
+            names(de)<-names(pj)
+            
+            pe<-(pj[(pj$years==first_y0),])$years-t
+            de["years"]<-pe
+
+            pj<-data.frame(rbind(de,pj))
+
+            for (nm in names(pj)[2:length(names(pj))]){
+                pj[(pj$years==pe),nm]<-round(pj[(pj$years==first_y0),nm]/((1+list_tmc[nm,methode])^(t)))
+                #pj[1,"years"]<-pe
+            }
+        }
+
+    outpath<-file.path("projection_demographique")
+    write.csv2(pj,file.path(outpath,paste("Retro_projection_geometrique","_",passee,".csv",sep="")))
+    return(pj)
+}
+```
+
+   b- methode2: croissance exponentielle 
+```{r setup, include=FALSE}
+Re_proj_expo=function(df,list_tmc,passee=2006,methode="tmc_racine_n"){
+    
+
+       
+        years<-df$years
+        pj<-df
+        first_y0<-(years[1])
+        n<-first_y0-passee
+        for (t in 1:n){
+              
+            de<-data.frame(matrix(ncol=length(names(pj))))
+            names(de)<-names(pj)
+            
+            pe<-(pj[(pj$years==first_y0),])$years-t
+            de["years"]<-pe
+
+            pj<-data.frame(rbind(de,pj))
+
+            for (nm in names(pj)[2:length(names(pj))]){
+
+                pj[(pj$years==pe),nm]<-round(pj[(pj$years==first_y0),nm]/(exp((t)*(list_tmc[nm,methode]))))
+                #pj[1,"years"]<-pe
+            }
+        }
+
+    outpath<-file.path("projection_demographique")
+    write.csv2(pj,file.path(outpath,paste("Retro_projection_exponentielle","_",passee,".csv",sep="")))
+    return(pj)
+}
+```
+
+
+
+  - function 1H : PROJECTION
+```{r setup, include=FALSE}
+projection=function(file_path,future=NULL,passee=NULL,com=NULL){
+    
+    
+    df<-tanspo_proj(file_path)
+    
+    outpath<-file.path("projection_demographique_niayes2040")
+    create_folder(outpath)
+    if (is.null(com)){
+        com<-names(df)
+        df<-df}else{df<-subset(df,select=c("years",com))}
+    
+    tmcList<-list_tmc(df,com)
+    
+    pjg<-proj_geom(df,tmcList,future)
+    pje<-proj_expo(df,tmcList,future)
+    rpjg<-Re_proj_geom(df,tmcList,passee)
+    rpje<-Re_proj_expo(df,tmcList,passee)
+}
+```
+
+
+
+                                          PROJECTION R-NIAYES 2040
+
+```{r setup, include=FALSE}
+projection("projection_demographique_niayes2040/RGPHAE_2013.csv",2040,2000)
+```
+
+
+```{r setup, include=FALSE}
+
+```
+
+
+```{r }
+
+```
