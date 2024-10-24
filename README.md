@@ -1,46 +1,60 @@
-# CIRAD-Niayes2040-Scripts-Cresus
-  Calibration de modèles et visualisation de données pour explorer les avenirs plausibles de la zone des Niayes au Sénégal
-# README: Dossiers de Code R pour le Mémoire
 
-Bienvenue dans le référentiel (repository) des codes R utilisés pour le mémoire. Ce référentiel est organisé en plusieurs dossiers, chacun correspondant à une étape spécifique du processus de recherche. 
+# Niayes 2040: Model Calibration and Scenario Exploration
 
-## Dossiers Principaux:
+This repository contains the scripts and data for calibrating models and visualizing data to explore the future scenarios of the **Niayes region in Senegal**. The project focuses on simulating land use and hydrological dynamics to assess plausible futures under different environmental, demographic, and economic pressures.
 
-### 1. Analyse de Sensibilité
-   - Ce dossier contient les scripts R et les notebooks pour l'analyse de sensibilité.
+### Project Overview
 
-### 2. Calibration Model Hydro
-   - Scripts R et notebooks pour la calibration du modèle hydrologique.
-
-### 3. Calibration Model Espace irrigué & urbain
-   - Scripts R et notebooks pour la calibration du modèle d'occupation du sol dans les zones irriguées et urbaines.
-
-### 4. Statistiques descriptives 1 - PAPA
-   - Analyses statistiques descriptives liées aux données PAPA.
-
-### 5. Statistiques descriptives 2 - Démographie
-   - Analyses statistiques descriptives sur les données démographiques.
-
-### 6. Typologie des exploitations Agricoles
-   - Scripts et notebooks pour créer une typologie des exploitations agricoles.
-
-### 7. Archives
-   - Une archive (.rar) contenant d'anciennes versions des codes et des documents pertinents.
-
-## Autres Fichiers:
-
-### - used_packages.R
-   - Un script R contenant la liste des packages nécessaires pour exécuter les scripts. Assurez-vous d'installer ces packages avant l'exécution du code.
-
-## Structure des Données:
-
-Chaque dossier contient un échantillon de données pour faciliter l'exécution des scripts. Pour une exécution correcte, veuillez conserver l'architecture des dossiers de données telle qu'elle est.
-
-## Instructions d'Exécution:
-
-- Avant d'exécuter les scripts, assurez-vous d'installer les packages R mentionnés dans `used_packages.R`.
-- Suivez les instructions spécifiques à chaque dossier pour exécuter les scripts/notebooks.
+The **Niayes 2040** project aims to model and simulate the land and water dynamics in the Niayes region to help decision-makers plan for sustainable development. This repository includes:
+- **Model Calibration**: Hydrological models and land-use models are calibrated to simulate the effects of urbanization, agricultural development, and other environmental changes.
+- **Scenario Exploration**: Multiple scenarios, including urbanization, groundwater salinization, and demographic growth, are simulated to assess their impact on the region's future.
+- **Sensitivity Analysis**: The model parameters are optimized through sensitivity testing to improve accuracy and robustness.
   
-N'hésitez pas à explorer chaque dossier pour plus de détails sur les analyses spécifiques.
+### Key Features
 
-**Note:** Si vous rencontrez des problèmes ou avez des questions, veuillez consulter le manuel d'utilisation de chaque dossier ou contacter l'auteur du mémoire.
+1. **Hydrological Model Calibration**: Calibrating hydrological models to simulate the impacts of climate change and groundwater depletion.
+2. **Land Use Model Calibration**: Simulation of land-use changes, focusing on the balance between agricultural and urban expansion.
+3. **Statistical Analysis**: Descriptive statistics and demographic projections provide critical inputs to the simulation models.
+4. **Farm Typology Segmentation**: Using machine learning techniques (K-means, Random Forest) to classify different types of agricultural practices.
+5. **Data Visualization**: Automated generation of graphics to visualize model outputs and scenario results.
+
+### Tools and Libraries
+- **R**: For model calibration, statistical analysis, and data visualization.
+- **Python**: For some statistical modeling and machine learning tasks.
+- **Gephi**: (optional) For network analysis and visualizing complex relationships in the data.
+
+### How to Run
+
+1. Clone the repository.
+2. Install the necessary R packages listed in `used_packages.R`.
+3. Run the scripts in each directory according to the instructions provided.
+
+### File Structure
+
+- `sensitivity_analysis/`: Scripts and notebooks for conducting sensitivity analysis on model parameters.
+- `hydro_model_calibration/`: R scripts for calibrating hydrological models for the Niayes region.
+- `land_use_model_calibration/`: Scripts for calibrating land-use models, focusing on irrigation and urban growth.
+- `descriptive_stats/`: Contains demographic and agricultural statistical analysis.
+- `farm_typology/`: Machine learning scripts for generating farm typologies.
+- `archives/`: Old versions of scripts and documentation (optional for exploration).
+- `used_packages.R`: A list of required R packages for the project.
+
+### Next Steps
+- Refine the hydrological and land-use models by incorporating more granular climate and soil data.
+- Explore additional demographic scenarios to evaluate their impact on land and water resources.
+- Use results from the sensitivity analysis to improve model precision.
+
+---
+
+### Suggestions for Renaming Files
+
+1. **Calibration_Niayes2040_Cresus_K.pdf** → `niayes2040_model_calibration_report.pdf`
+2. **Analyse de sensibilité** → `sensitivity_analysis/`
+3. **Calibration Model Hydro** → `hydro_model_calibration/`
+4. **Calibration Model Espace irrigué & urbain** → `land_use_model_calibration/`
+5. **Statistiques descriptives 1 - PAPA** → `descriptive_stats_papa/`
+6. **Statistiques descriptives 2 - Démographie** → `descriptive_stats_demography/`
+7. **Typologie des exploitations Agricoles** → `farm_typology/`
+8. **Archives.rar** → `archives/`
+9. **used_packages.R** (no change needed)
+
